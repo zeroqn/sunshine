@@ -1,6 +1,7 @@
 { pkgs, ... }:
 
 let
+  buildDeps = pkgs.callPackage ./build-deps.nix { };
   src = pkgs.fetchgit {
     url = "https://github.com/LizardByte/Sunshine.git";
     rev = "5053c1d259dc56e226ae9759121f61883351f298";
@@ -71,6 +72,7 @@ pkgs.sunshine.overrideAttrs (old: {
 
   cmakeFlags = old.cmakeFlags ++ [
     (pkgs.lib.cmakeBool "SUNSHINE_ENABLE_VULKAN" true)
+    (pkgs.lib.cmakeFeature "FFMPEG_PREPARED_BINARIES" "${buildDeps}/ffmpeg")
     (pkgs.lib.cmakeFeature "SUNSHINE_EXECUTABLE_PATH" "$out/bin/sunshine")
   ];
 

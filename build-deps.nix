@@ -1,0 +1,107 @@
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  fetchgit,
+  autoconf,
+  automake,
+  cmake,
+  freetype,
+  git,
+  gnutls,
+  gnumake,
+  lame,
+  libass,
+  libdrm,
+  libopus,
+  libtool,
+  libx11,
+  libxcb,
+  libxfixes,
+  meson,
+  nasm,
+  numactl,
+  pkg-config,
+  SDL2,
+  texinfo,
+  wayland,
+  wget,
+  zlib,
+}:
+
+let
+  buildDepsRev = "2844f04e89d2c4814cc7ebb2f2494cd62c8734ac";
+  buildDepsSrc = fetchgit {
+    url = "https://github.com/LizardByte/build-deps.git";
+    rev = buildDepsRev;
+    hash = "sha256-8Pdb1vh/L+Ddc1P1VdELJlDqjWupYpsuTXjR342lyJk=";
+    fetchSubmodules = true;
+  };
+
+  libvaSrc = fetchFromGitHub {
+    owner = "intel";
+    repo = "libva";
+    rev = "2.23.0";
+    hash = "sha256-sQrOsw6T3fE7IDDrcAeVdLpDe+mzt2BlyvKKcsB+I+c=";
+  };
+in
+stdenv.mkDerivation {
+  pname = "sunshine-build-deps";
+  version = "2026.04.17-master";
+  src = buildDepsSrc;
+
+  strictDeps = true;
+
+  nativeBuildInputs = [
+    autoconf
+    automake
+    cmake
+    git
+    gnumake
+    libtool
+    meson
+    nasm
+    pkg-config
+    texinfo
+    wget
+  ];
+
+  buildInputs = [
+    SDL2
+    freetype
+    gnutls
+    lame
+    libass
+    libdrm
+    libopus
+    libx11
+    libxcb
+    libxfixes
+    numactl
+    wayland
+    zlib
+  ];
+
+  postPatch = ''
+    cp -r ${libvaSrc} third-party/local-libva
+
+    substituteInPlace cmake/ffmpeg/libva.cmake \
+      --replace-fail 'CPMGetPackage(libva)' "" \
+      --replace-fail 'set(LIBVA_GENERATED_SRC_PATH ''${libva_SOURCE_DIR})' \
+                     'set(LIBVA_GENERATED_SRC_PATH ''${CMAKE_CURRENT_SOURCE_DIR}/third-party/local-libva)'
+  '';
+
+  cmakeFlags = [
+    (lib.cmakeBool "BUILD_ALL" false)
+    (lib.cmakeBool "BUILD_BOOST" false)
+    (lib.cmakeBool "BUILD_FFMPEG" true)
+  ];
+
+  enableParallelBuilding = true;
+
+  meta = {
+    description = "Pinned LizardByte build-deps FFmpeg bundle for Sunshine";
+    homepage = "https://github.com/LizardByte/build-deps";
+    platforms = lib.platforms.linux;
+  };
+}
