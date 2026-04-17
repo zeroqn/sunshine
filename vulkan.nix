@@ -56,11 +56,9 @@ pkgs.sunshine.overrideAttrs (old: {
       --subst-var-by PROJECT_DESCRIPTION 'Self-hosted game stream host for Moonlight' \
       --subst-var-by SUNSHINE_DESKTOP_ICON 'sunshine' \
       --subst-var-by CMAKE_INSTALL_FULL_DATAROOTDIR "$out/share" \
-      --replace-fail '/usr/bin/env systemctl start --u sunshine' 'sunshine'
+      --replace-fail 'Exec=/usr/bin/env systemctl start --u app-@PROJECT_FQDN@' 'Exec=sunshine'
 
-    substituteInPlace packaging/linux/sunshine.service.in \
-      --subst-var-by PROJECT_DESCRIPTION 'Self-hosted game stream host for Moonlight' \
-      --subst-var-by SUNSHINE_EXECUTABLE_PATH $out/bin/sunshine \
+    substituteInPlace packaging/linux/app-dev.lizardbyte.app.Sunshine.service.in \
       --replace-fail '/bin/sleep' '${pkgs.lib.getExe' pkgs.coreutils "sleep"}'
   '';
 
@@ -73,6 +71,7 @@ pkgs.sunshine.overrideAttrs (old: {
 
   cmakeFlags = old.cmakeFlags ++ [
     (pkgs.lib.cmakeBool "SUNSHINE_ENABLE_VULKAN" true)
+    (pkgs.lib.cmakeFeature "SUNSHINE_EXECUTABLE_PATH" "$out/bin/sunshine")
   ];
 
   postFixup = pkgs.lib.optionalString true ''
