@@ -34,7 +34,7 @@ let
   buildDepsSrc = fetchgit {
     url = "https://github.com/LizardByte/build-deps.git";
     rev = buildDepsRev;
-    hash = "sha256-8Pdb1vh/L+Ddc1P1VdELJlDqjWupYpsuTXjR342lyJk=";
+    hash = "sha256-FE2DRalNwsfPpq85Nx1SXScQbK8My+W+SMHN332uNFU=";
     fetchSubmodules = true;
   };
 
