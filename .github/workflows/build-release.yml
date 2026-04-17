@@ -1,6 +1,8 @@
 name: Build Sunshine and upload release assets
 
 on:
+  push:
+    branches: [main]
   release:
     types: [published]
   workflow_dispatch:
