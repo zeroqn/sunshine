@@ -8,6 +8,7 @@ let
     fetchSubmodules = true;
   };
   version = "2026.04.16.vulkan";
+  boostVersion = pkgs.boost.version;
 in
 
 pkgs.sunshine.overrideAttrs (old: {
@@ -36,8 +37,34 @@ pkgs.sunshine.overrideAttrs (old: {
     '';
   };
 
+  postPatch = ''
+    substituteInPlace cmake/targets/common.cmake \
+      --replace-fail 'find_program(NPM npm REQUIRED)' ""
+
+    sed -i -E 's|set\(BOOST_VERSION "[^"]+"\)|set(BOOST_VERSION "${boostVersion}")|' \
+      cmake/dependencies/Boost_Sunshine.cmake
+    grep -Fq 'set(BOOST_VERSION "${boostVersion}")' \
+      cmake/dependencies/Boost_Sunshine.cmake
+    echo 'set(FETCH_CONTENT_BOOST_USED TRUE)' >> cmake/dependencies/Boost_Sunshine.cmake
+
+    substituteInPlace cmake/packaging/linux.cmake \
+      --replace-fail 'find_package(Systemd)' "" \
+      --replace-fail 'find_package(Udev)' ""
+
+    substituteInPlace packaging/linux/dev.lizardbyte.app.Sunshine.desktop \
+      --subst-var-by PROJECT_NAME 'Sunshine' \
+      --subst-var-by PROJECT_DESCRIPTION 'Self-hosted game stream host for Moonlight' \
+      --subst-var-by SUNSHINE_DESKTOP_ICON 'sunshine' \
+      --subst-var-by CMAKE_INSTALL_FULL_DATAROOTDIR "$out/share" \
+      --replace-fail '/usr/bin/env systemctl start --u sunshine' 'sunshine'
+
+    substituteInPlace packaging/linux/sunshine.service.in \
+      --subst-var-by PROJECT_DESCRIPTION 'Self-hosted game stream host for Moonlight' \
+      --subst-var-by SUNSHINE_EXECUTABLE_PATH $out/bin/sunshine \
+      --replace-fail '/bin/sleep' '${pkgs.lib.getExe' pkgs.coreutils "sleep"}'
+  '';
+
   buildInputs = old.buildInputs ++ [
-    pkgs.boost189
     pkgs.vulkan-headers
     pkgs.vulkan-loader
     #pkgs.glslang
