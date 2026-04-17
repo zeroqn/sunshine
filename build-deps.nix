@@ -42,7 +42,7 @@ let
     owner = "intel";
     repo = "libva";
     rev = "2.23.0";
-    hash = "sha256-sQrOsw6T3fE7IDDrcAeVdLpDe+mzt2BlyvKKcsB+I+c=";
+    hash = "sha256-ePtzZPzBnkhV0cV3Nw/pgOnKnzDkk7U2Svzo0e1YMbc=";
   };
 in
 stdenv.mkDerivation {
