@@ -84,6 +84,9 @@ stdenv.mkDerivation {
 
   postPatch = ''
     cp -r ${libvaSrc} third-party/local-libva
+    # Sources copied from the Nix store keep their read-only modes, but libva's
+    # autogen.sh needs to create m4/ and autom4te.cache in-place.
+    chmod -R u+w third-party/local-libva
 
     # Nix builds are offline and fetchgit strips VCS metadata, so the upstream
     # opportunistic tag refresh fails before CMake can configure FFmpeg.
