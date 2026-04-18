@@ -95,8 +95,12 @@ stdenv.mkDerivation {
 
     substituteInPlace cmake/ffmpeg/libva.cmake \
       --replace-fail 'CPMGetPackage(libva)' "" \
+      --replace-fail '--enable-drm --enable-x11 --enable-glx --enable-wayland' \
+                     '--enable-drm --disable-x11 --disable-glx --enable-wayland' \
       --replace-fail 'set(LIBVA_GENERATED_SRC_PATH ''${libva_SOURCE_DIR})' \
-                     'set(LIBVA_GENERATED_SRC_PATH ''${CMAKE_CURRENT_SOURCE_DIR}/third-party/local-libva)'
+                     'set(LIBVA_GENERATED_SRC_PATH ''${CMAKE_CURRENT_SOURCE_DIR}/third-party/local-libva)' \
+      --replace-fail '"''${CMAKE_CURRENT_BINARY_DIR}/libva/lib/libva-x11.a"' "" \
+      --replace-fail '"''${CMAKE_CURRENT_BINARY_DIR}/libva/lib/libva-glx.a"' ""
   '';
 
   cmakeFlags = [
