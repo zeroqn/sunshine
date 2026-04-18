@@ -85,6 +85,11 @@ stdenv.mkDerivation {
   postPatch = ''
     cp -r ${libvaSrc} third-party/local-libva
 
+    # Nix builds are offline and fetchgit strips VCS metadata, so the upstream
+    # opportunistic tag refresh fails before CMake can configure FFmpeg.
+    sed -i '/^foreach(repo "x265_git" "SVT-AV1")$/,/^endforeach()$/d' \
+      cmake/ffmpeg/_main.cmake
+
     substituteInPlace cmake/ffmpeg/libva.cmake \
       --replace-fail 'CPMGetPackage(libva)' "" \
       --replace-fail 'set(LIBVA_GENERATED_SRC_PATH ''${libva_SOURCE_DIR})' \
