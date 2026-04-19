@@ -2,6 +2,13 @@
 
 let
   buildDeps = pkgs.callPackage ./build-deps.nix { };
+  coreutilsForService = pkgs.coreutils.overrideAttrs (_: {
+    # Local Nix rebuilds of coreutils can fail an unrelated cp test under this
+    # container filesystem. We only need a stable sleep path in the generated
+    # user service, so skip coreutils' self-tests for this narrowly-scoped use.
+    doCheck = false;
+    doInstallCheck = false;
+  });
   src = pkgs.fetchgit {
     url = "https://github.com/LizardByte/Sunshine.git";
     rev = "5053c1d259dc56e226ae9759121f61883351f298";
@@ -60,7 +67,7 @@ pkgs.sunshine.overrideAttrs (old: {
       --replace-fail 'Exec=/usr/bin/env systemctl start --u app-@PROJECT_FQDN@' 'Exec=sunshine'
 
     substituteInPlace packaging/linux/app-dev.lizardbyte.app.Sunshine.service.in \
-      --replace-fail '/bin/sleep' '${pkgs.lib.getExe' pkgs.coreutils "sleep"}'
+      --replace-fail '/bin/sleep' '${pkgs.lib.getExe' coreutilsForService "sleep"}'
   '';
 
   buildInputs = old.buildInputs ++ [
