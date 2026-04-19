@@ -9,6 +9,10 @@ let
     doCheck = false;
     doInstallCheck = false;
   });
+  pythonForGlad = pkgs.python3.withPackages (ps: [
+    ps.jinja2
+    ps.setuptools
+  ]);
   src = pkgs.fetchgit {
     url = "https://github.com/LizardByte/Sunshine.git";
     rev = "5053c1d259dc56e226ae9759121f61883351f298";
@@ -68,17 +72,43 @@ pkgs.sunshine.overrideAttrs (old: {
 
     substituteInPlace packaging/linux/app-dev.lizardbyte.app.Sunshine.service.in \
       --replace-fail '/bin/sleep' '${pkgs.lib.getExe' coreutilsForService "sleep"}'
+
+    python <<'PY'
+from pathlib import Path
+
+path = Path('src/nvenc/nvenc_base.cpp')
+text = path.read_text()
+text = text.replace(
+    '#if NVENCAPI_VERSION != MAKE_NVENC_VER(12U, 0U)\n  #error Check and update NVENC code for backwards compatibility!\n#endif',
+    '#if NVENCAPI_VERSION < MAKE_NVENC_VER(12U, 0U) || NVENCAPI_VERSION > MAKE_NVENC_VER(13U, 0U)\n  #error Check and update NVENC code for backwards compatibility!\n#endif'
+)
+text = text.replace(
+    '          if (buffer_is_10bit()) {\n            format_config.pixelBitDepthMinus8 = 2;\n          }',
+    '          if (buffer_is_10bit()) {\n#if NVENCAPI_MAJOR_VERSION >= 13\n            format_config.inputBitDepth = NV_ENC_BIT_DEPTH_10;\n            format_config.outputBitDepth = NV_ENC_BIT_DEPTH_10;\n#else\n            format_config.pixelBitDepthMinus8 = 2;\n#endif\n          }'
+)
+text = text.replace(
+    '          if (buffer_is_10bit()) {\n            format_config.inputPixelBitDepthMinus8 = 2;\n            format_config.pixelBitDepthMinus8 = 2;\n          }',
+    '          if (buffer_is_10bit()) {\n#if NVENCAPI_MAJOR_VERSION >= 13\n            format_config.inputBitDepth = NV_ENC_BIT_DEPTH_10;\n            format_config.outputBitDepth = NV_ENC_BIT_DEPTH_10;\n#else\n            format_config.inputPixelBitDepthMinus8 = 2;\n            format_config.pixelBitDepthMinus8 = 2;\n#endif\n          }'
+)
+path.write_text(text)
+PY
   '';
 
+  nativeBuildInputs = [
+    pythonForGlad
+    pkgs.glslang
+  ] ++ old.nativeBuildInputs;
+
   buildInputs = old.buildInputs ++ [
+    pkgs.pipewire
     pkgs.vulkan-headers
     pkgs.vulkan-loader
-    #pkgs.glslang
-    #pkgs.shaderc
   ];
 
   cmakeFlags = old.cmakeFlags ++ [
     (pkgs.lib.cmakeBool "SUNSHINE_ENABLE_VULKAN" true)
+    (pkgs.lib.cmakeBool "GLAD_SKIP_PIP_INSTALL" true)
+    (pkgs.lib.cmakeFeature "Python_EXECUTABLE" "${pythonForGlad}/bin/python3")
     (pkgs.lib.cmakeFeature "FFMPEG_PREPARED_BINARIES" "${buildDeps}/ffmpeg")
     (pkgs.lib.cmakeFeature "SUNSHINE_EXECUTABLE_PATH" "$out/bin/sunshine")
   ];
