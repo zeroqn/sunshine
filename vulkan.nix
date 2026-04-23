@@ -15,11 +15,11 @@ let
   ]);
   src = pkgs.fetchgit {
     url = "https://github.com/LizardByte/Sunshine.git";
-    rev = "7228c2553c393739c3387d5a152c9b255be2328f";
-    hash = "sha256-ewVuYfVcFPkEWZkkqZokXh/Fbcrwmd/mva/UJQyMDwo=";
+    rev = "5cf5e8c1ceb0a0d3630851a09b19577a96bbe9b8";
+    hash = "sha256-z6e8BEEnvLzeh5mE4nR0SDv5NOGnZjJgxljguwFvJuE=";
     fetchSubmodules = true;
   };
-  version = "2026.04.18.vulkan";
+  version = "2026.04.23.vulkan";
   boostVersion = pkgs.boost.version;
 in
 
@@ -31,7 +31,7 @@ pkgs.sunshine.overrideAttrs (old: {
     inherit src version;
 
     pname = "sunshine-ui";
-    npmDepsHash = "sha256-9NNyfMm36HCzVfhJni3fQfG7R59F9c1MV+uBp/F8a2s=";
+    npmDepsHash = "sha256-rNLb3vbabQyiM4XBQ5sFZpQ0+YyyJKxeZM0rhjbyP3Y=";
     nodejs = pkgs.nodejs_24;
 
     # use generated package-lock.json as upstream does not provide one
