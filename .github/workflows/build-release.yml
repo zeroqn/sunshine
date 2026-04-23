@@ -51,6 +51,31 @@ jobs:
           git tag -fa main-build -m 'Rolling release for main branch'
           git push origin refs/tags/main-build --force
 
+      - name: Reset rolling release body
+        if: github.ref == 'refs/heads/main'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              const { data: release } = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: 'main-build',
+              });
+
+              await github.rest.repos.updateRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.id,
+                body: '',
+              });
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
+
       - name: Upload assets to GitHub release
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
