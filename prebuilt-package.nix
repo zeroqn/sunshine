@@ -1,4 +1,12 @@
-{ lib, fetchurl, stdenvNoCC, releaseAsset }:
+{
+  lib,
+  fetchurl,
+  stdenvNoCC,
+  autoPatchelfHook,
+  makeWrapper,
+  releaseAsset,
+  runtimeDeps ? [ ],
+}:
 
 stdenvNoCC.mkDerivation {
   pname = "sunshine";
@@ -10,6 +18,13 @@ stdenvNoCC.mkDerivation {
 
   dontConfigure = true;
   dontBuild = true;
+
+  nativeBuildInputs = [
+    autoPatchelfHook
+    makeWrapper
+  ];
+
+  buildInputs = map lib.getLib runtimeDeps;
 
   unpackPhase = ''
     runHook preUnpack
@@ -27,6 +42,15 @@ stdenvNoCC.mkDerivation {
 
     mkdir -p "$out"
     cp -a . "$out"/
+
+    # Release artifacts are produced from a Nix source build, so bin/sunshine
+    # is already a wrapper with absolute paths to the builder's output. Replace
+    # it with a wrapper for this package output instead of preserving stale
+    # /nix/store references from the publishing machine.
+    chmod u+w "$out/bin" "$out/bin/sunshine"
+    rm "$out/bin/sunshine"
+    makeWrapper "$out/bin/.sunshine-wrapped" "$out/bin/sunshine" \
+      --inherit-argv0
 
     # Upstream bundles both share/systemd/user and a compatibility symlink at
     # lib/systemd/user -> ../../share/systemd/user. Nix's systemd hook later

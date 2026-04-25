@@ -11,8 +11,44 @@
       releaseMeta = builtins.fromJSON (builtins.readFile ./release-assets.json);
       supportedSystems = builtins.attrNames releaseMeta.assets;
 
+      mkRuntimeDeps = pkgs:
+        with pkgs;
+        [
+          at-spi2-core
+          boost
+          cairo
+          curl
+          gdk-pixbuf
+          glib
+          gtk3
+          harfbuzz
+          libappindicator-gtk3
+          libcap
+          libdbusmenu-gtk3
+          libdrm
+          libevdev
+          libgbm
+          libICE
+          libnotify
+          libopus
+          libpulseaudio
+          libSM
+          libva
+          miniupnpc
+          numactl
+          openssl
+          pango
+          pipewire
+          vulkan-loader
+          wayland
+          libx11
+          libxext
+          zlib
+        ];
+
       mkBinaryPackage = pkgs: system:
         pkgs.callPackage ./prebuilt-package.nix {
+          runtimeDeps = mkRuntimeDeps pkgs;
           releaseAsset =
             releaseMeta.assets.${system}
             // {
