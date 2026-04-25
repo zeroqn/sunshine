@@ -86,9 +86,15 @@ PY
       --chdir "$out" \
       --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath runtimeDeps}"
 
-    if [ -f "$out/share/systemd/user/app-dev.lizardbyte.app.Sunshine.service" ]; then
-      substituteInPlace "$out/share/systemd/user/app-dev.lizardbyte.app.Sunshine.service" \
-        --replace-fail 'ExecStart=$out/bin/sunshine' "ExecStart=$out/bin/sunshine"
+    service="$out/share/systemd/user/app-dev.lizardbyte.app.Sunshine.service"
+    if [ -f "$service" ]; then
+      if grep -Eq '^ExecStart=.*/bin/sunshine$' "$service"; then
+        sed -i -E "s|^ExecStart=.*/bin/sunshine$|ExecStart=$out/bin/sunshine|" "$service"
+      else
+        echo "unexpected Sunshine service ExecStart in $service:" >&2
+        grep -n '^ExecStart=' "$service" >&2 || true
+        exit 1
+      fi
     fi
 
     if [ ! -e "$out/lib/udev/rules.d/60-sunshine.rules" ]; then
