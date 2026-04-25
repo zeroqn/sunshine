@@ -110,11 +110,18 @@ PY
     (pkgs.lib.cmakeBool "GLAD_SKIP_PIP_INSTALL" true)
     (pkgs.lib.cmakeFeature "Python_EXECUTABLE" "${pythonForGlad}/bin/python3")
     (pkgs.lib.cmakeFeature "FFMPEG_PREPARED_BINARIES" "${buildDeps}/ffmpeg")
-    (pkgs.lib.cmakeFeature "SUNSHINE_EXECUTABLE_PATH" "$out/bin/sunshine")
+    (pkgs.lib.cmakeFeature "SUNSHINE_EXECUTABLE_PATH" "${placeholder "out"}/bin/sunshine")
+    (pkgs.lib.cmakeFeature "SUNSHINE_ASSETS_DIR_DEF" "assets")
+    (pkgs.lib.cmakeBool "UDEV_FOUND" true)
+    (pkgs.lib.cmakeFeature "UDEV_RULES_INSTALL_DIR" "lib/udev/rules.d")
+    (pkgs.lib.cmakeBool "SYSTEMD_FOUND" true)
+    (pkgs.lib.cmakeFeature "SYSTEMD_USER_UNIT_INSTALL_DIR" "lib/systemd/user")
+    (pkgs.lib.cmakeFeature "SYSTEMD_MODULES_LOAD_DIR" "lib/modules-load.d")
   ];
 
   postFixup = pkgs.lib.optionalString true ''
     wrapProgram $out/bin/sunshine \
+      --chdir "$out" \
       --set LD_LIBRARY_PATH ${pkgs.lib.makeLibraryPath [ pkgs.vulkan-loader ]}
   '';
 

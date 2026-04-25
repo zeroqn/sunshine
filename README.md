@@ -33,10 +33,11 @@ at the prebuilt package from this repo.
       system = "x86_64-linux";
       modules = [
         sunshine-prebuilt.nixosModules.default
-        ({ pkgs, ... }: {
-          environment.systemPackages = [
-            pkgs.sunshine
-          ];
+        {
+          services.sunshine = {
+            enable = true;
+            openFirewall = true;
+          };
         })
       ];
     };
@@ -46,6 +47,20 @@ at the prebuilt package from this repo.
 
 After importing `sunshine-prebuilt.nixosModules.default`, anything in that
 system using `pkgs.sunshine` will receive the prebuilt release from this repo.
+
+The imported overlay makes the upstream `services.sunshine` NixOS module use
+this repo's prebuilt `pkgs.sunshine`. Prefer that service module for a real
+host setup because it also loads `uinput`, installs the udev rules used by
+virtual gamepads, and enables Avahi publishing. For DRM/KMS capture on systems
+that require it, add the privileged wrapper; this flake also grants
+`CAP_SYS_NICE` to that wrapper so Sunshine can raise its worker thread
+priority:
+
+```nix
+{
+  services.sunshine.capSysAdmin = true;
+}
+```
 
 ### Option 2: use the package directly without the overlay
 
@@ -69,6 +84,23 @@ If you only want to install the package and do not want to override
           ];
         })
       ];
+    };
+  };
+}
+```
+
+If you install only the package, you may still need the matching runtime system
+configuration yourself:
+
+```nix
+{
+  boot.kernelModules = [ "uinput" ];
+  services.udev.packages = [ sunshine-prebuilt.packages.${pkgs.system}.default ];
+  services.avahi = {
+    enable = true;
+    publish = {
+      enable = true;
+      userServices = true;
     };
   };
 }

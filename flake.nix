@@ -15,6 +15,7 @@
         with pkgs;
         [
           at-spi2-core
+          avahi
           boost
           cairo
           curl
@@ -27,6 +28,7 @@
           libdbusmenu-gtk3
           libdrm
           libevdev
+          libglvnd
           libgbm
           libICE
           libnotify
@@ -34,6 +36,7 @@
           libpulseaudio
           libSM
           libva
+          libvdpau
           miniupnpc
           numactl
           openssl
@@ -42,7 +45,13 @@
           vulkan-loader
           wayland
           libx11
+          libxcb
           libxext
+          libxfixes
+          libxi
+          libxkbcommon
+          libxrandr
+          libxtst
           zlib
         ];
 
@@ -111,8 +120,16 @@
     // {
       overlays.default = overlay;
 
-      nixosModules.default = { ... }: {
+      nixosModules.default = { config, lib, ... }: {
         nixpkgs.overlays = [ self.overlays.default ];
+
+        # Upstream's RPM grants both capabilities. The nixpkgs module uses the
+        # same wrapper for DRM/KMS capture; include CAP_SYS_NICE there too so
+        # Sunshine can raise its capture/encoder thread priority when users opt
+        # into the privileged wrapper.
+        security.wrappers.sunshine.capabilities =
+          lib.mkIf (config.services.sunshine.enable && config.services.sunshine.capSysAdmin)
+            (lib.mkForce "cap_sys_admin,cap_sys_nice+p");
       };
     };
 }
