@@ -15,11 +15,11 @@ let
   ]);
   src = pkgs.fetchgit {
     url = "https://github.com/LizardByte/Sunshine.git";
-    rev = "5cf5e8c1ceb0a0d3630851a09b19577a96bbe9b8";
-    hash = "sha256-z6e8BEEnvLzeh5mE4nR0SDv5NOGnZjJgxljguwFvJuE=";
+    rev = "dfffc8a86efe1b6ff76a1eea56e41bbf8495054c";
+    hash = "sha256-hTFM0zN3MQ6PM8Ldp193S9DjXuOP0oAYk+rr3qUo+cU=";
     fetchSubmodules = true;
   };
-  version = "2026.04.23.vulkan";
+  version = "2026.05.12.vulkan";
   boostVersion = pkgs.boost.version;
 in
 
@@ -31,10 +31,10 @@ pkgs.sunshine.overrideAttrs (old: {
     inherit src version;
 
     pname = "sunshine-ui";
-    npmDepsHash = "sha256-rNLb3vbabQyiM4XBQ5sFZpQ0+YyyJKxeZM0rhjbyP3Y=";
+    npmDepsHash = "sha256-UVtuqjXnijrRcLyvVcsZrI9q04YTxXP6TT27xofUrWI=";
     nodejs = pkgs.nodejs_24;
 
-    # use generated package-lock.json as upstream does not provide one
+    # keep npm dependency hashing tied to this repo's checked-in lockfile
     postPatch = ''
       cp ${./package-lock.json} ./package-lock.json
     '';
@@ -79,16 +79,19 @@ from pathlib import Path
 path = Path('src/nvenc/nvenc_base.cpp')
 text = path.read_text()
 text = text.replace(
-    '#if NVENCAPI_VERSION != MAKE_NVENC_VER(12U, 0U)\n  #error Check and update NVENC code for backwards compatibility!\n#endif',
+    '#if NVENCAPI_VERSION != MAKE_NVENC_VER(13U, 0U)\n  #error Check and update NVENC code for backwards compatibility!\n#endif',
     '#if NVENCAPI_VERSION < MAKE_NVENC_VER(12U, 0U) || NVENCAPI_VERSION > MAKE_NVENC_VER(13U, 0U)\n  #error Check and update NVENC code for backwards compatibility!\n#endif'
 )
+hevc_10bit = '          if (buffer_is_10bit()) {\n            format_config.inputBitDepth = NV_ENC_BIT_DEPTH_10;\n            format_config.outputBitDepth = NV_ENC_BIT_DEPTH_10;\n          }'
 text = text.replace(
-    '          if (buffer_is_10bit()) {\n            format_config.pixelBitDepthMinus8 = 2;\n          }',
-    '          if (buffer_is_10bit()) {\n#if NVENCAPI_MAJOR_VERSION >= 13\n            format_config.inputBitDepth = NV_ENC_BIT_DEPTH_10;\n            format_config.outputBitDepth = NV_ENC_BIT_DEPTH_10;\n#else\n            format_config.pixelBitDepthMinus8 = 2;\n#endif\n          }'
+    hevc_10bit,
+    '          if (buffer_is_10bit()) {\n#if NVENCAPI_MAJOR_VERSION >= 13\n            format_config.inputBitDepth = NV_ENC_BIT_DEPTH_10;\n            format_config.outputBitDepth = NV_ENC_BIT_DEPTH_10;\n#else\n            format_config.pixelBitDepthMinus8 = 2;\n#endif\n          }',
+    1
 )
 text = text.replace(
-    '          if (buffer_is_10bit()) {\n            format_config.inputPixelBitDepthMinus8 = 2;\n            format_config.pixelBitDepthMinus8 = 2;\n          }',
-    '          if (buffer_is_10bit()) {\n#if NVENCAPI_MAJOR_VERSION >= 13\n            format_config.inputBitDepth = NV_ENC_BIT_DEPTH_10;\n            format_config.outputBitDepth = NV_ENC_BIT_DEPTH_10;\n#else\n            format_config.inputPixelBitDepthMinus8 = 2;\n            format_config.pixelBitDepthMinus8 = 2;\n#endif\n          }'
+    hevc_10bit,
+    '          if (buffer_is_10bit()) {\n#if NVENCAPI_MAJOR_VERSION >= 13\n            format_config.inputBitDepth = NV_ENC_BIT_DEPTH_10;\n            format_config.outputBitDepth = NV_ENC_BIT_DEPTH_10;\n#else\n            format_config.inputPixelBitDepthMinus8 = 2;\n            format_config.pixelBitDepthMinus8 = 2;\n#endif\n          }',
+    1
 )
 path.write_text(text)
 PY
