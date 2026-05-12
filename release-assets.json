@@ -3,13 +3,13 @@
   "repo": "sunshine",
   "release": {
     "tag": "main-build",
-    "version": "main-build-50dfe8a82ed0"
+    "version": "main-build-6e20971d33c2"
   },
   "assets": {
     "x86_64-linux": {
       "name": "sunshine-main-x86_64-linux.tar.gz",
       "url": "https://github.com/zeroqn/sunshine/releases/download/main-build/sunshine-main-x86_64-linux.tar.gz",
-      "hash": "sha256-WZbXfe4ioGu1bgak3mziPRPINcx4aLZTtTYQ3OjthZk="
+      "hash": "sha256-qk5i4J/WGrYa2I4FeZ+yoend/Nhu3nx3K3M92VS51ec="
     }
   }
 }
