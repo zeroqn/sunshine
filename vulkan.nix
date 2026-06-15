@@ -15,11 +15,11 @@ let
   ]);
   src = pkgs.fetchgit {
     url = "https://github.com/LizardByte/Sunshine.git";
-    rev = "dfffc8a86efe1b6ff76a1eea56e41bbf8495054c";
-    hash = "sha256-hTFM0zN3MQ6PM8Ldp193S9DjXuOP0oAYk+rr3qUo+cU=";
+    rev = "05cadf3867100417628e75a428c71c764f0d8d75";
+    hash = "sha256-C/TxYQWa30HdOm2Xjuir+RbaLbjGdPLmE1dpByOgkuw=";
     fetchSubmodules = true;
   };
-  version = "2026.05.12.vulkan";
+  version = "2026.06.13.vulkan";
   boostVersion = pkgs.boost.version;
 in
 
@@ -31,7 +31,7 @@ pkgs.sunshine.overrideAttrs (old: {
     inherit src version;
 
     pname = "sunshine-ui";
-    npmDepsHash = "sha256-UVtuqjXnijrRcLyvVcsZrI9q04YTxXP6TT27xofUrWI=";
+    npmDepsHash = "sha256-A5YRf5EP5e6lPx521TL6AdWj27PAHcoPubyE9DJO5hw=";
     nodejs = pkgs.nodejs_24;
 
     # keep npm dependency hashing tied to this repo's checked-in lockfile
@@ -100,12 +100,15 @@ PY
   nativeBuildInputs = [
     pythonForGlad
     pkgs.glslang
+    pkgs.qt6.wrapQtAppsHook
   ] ++ old.nativeBuildInputs;
 
   buildInputs = old.buildInputs ++ [
     pkgs.pipewire
     pkgs.vulkan-headers
     pkgs.vulkan-loader
+    pkgs.qt6.qtbase
+    pkgs.qt6.qtsvg
   ];
 
   cmakeFlags = old.cmakeFlags ++ [
@@ -122,10 +125,9 @@ PY
     (pkgs.lib.cmakeFeature "SYSTEMD_MODULES_LOAD_DIR" "lib/modules-load.d")
   ];
 
-  postFixup = pkgs.lib.optionalString true ''
-    wrapProgram $out/bin/sunshine \
-      --chdir "$out" \
-      --set LD_LIBRARY_PATH ${pkgs.lib.makeLibraryPath [ pkgs.vulkan-loader ]}
-  '';
+  qtWrapperArgs = [
+    "--chdir ${placeholder "out"}"
+    "--set LD_LIBRARY_PATH ${pkgs.lib.makeLibraryPath [ pkgs.vulkan-loader ]}"
+  ];
 
 })

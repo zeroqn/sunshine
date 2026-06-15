@@ -1,15 +1,15 @@
 { lib, fetchurl, stdenvNoCC }:
 
 let
-  releaseTag = "v2026.508.175015";
+  releaseTag = "v2026.516.30821";
   platformAssets = {
     x86_64-linux = {
       name = "Linux-x86_64-ffmpeg.tar.gz";
-      hash = "sha256-K647T9PBOytzG1vJDoiMxTUhboW0mbhAXSNQjqpYmSQ=";
+      hash = "sha256-wyMZ/MKGe+/o/zria006WDeMOpwb/vkCnJlpMhw7xuw=";
     };
     aarch64-linux = {
       name = "Linux-aarch64-ffmpeg.tar.gz";
-      hash = "sha256-6iyfcMvg2VSTvvj6RK1bUo0zPCUcC5WI/p3THzR/9mw=";
+      hash = "sha256-ELbJRAumF47DuUT2xvaXJTSXytUZbSOi0y0zXargBi4=";
     };
   };
   system = stdenvNoCC.hostPlatform.system;
