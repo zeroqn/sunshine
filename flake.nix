@@ -42,6 +42,8 @@
           openssl
           pango
           pipewire
+          qt6.qtbase
+          qt6.qtsvg
           vulkan-loader
           wayland
           libx11
